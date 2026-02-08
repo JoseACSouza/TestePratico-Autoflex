@@ -16,7 +16,7 @@ public class Feedstock {
     public Long id;
 
     @Column(name = "FEEDSTOCK_CODE", nullable = false, unique = true, length = 30)
-    public String feedStockCode;
+    public String feedstockCode;
 
     @Column(name = "NAME", nullable = false, length = 100)
     public String name;
@@ -29,4 +29,5 @@ public class Feedstock {
 
     @OneToMany(mappedBy = "feedstock")
     public Set<ProductFeedstock> products = new HashSet<>();
+
 }

@@ -8,15 +8,16 @@ import java.util.Objects;
 
 @Embeddable
 public class ProductFeedstockId implements Serializable {
-    @Column(name="ID_PRODUCT")
+
+    @Column(name = "ID_PRODUCT")
     public Long idProduct;
 
-    @Column(name="ID_FEEDSTOCK")
+    @Column(name = "ID_FEEDSTOCK")
     public Long idFeedstock;
 
-    public ProductFeedstockId(){}
+    public ProductFeedstockId() {}
 
-    public ProductFeedstockId(Long idProduct, Long idFeedstock){
+    public ProductFeedstockId(Long idProduct, Long idFeedstock) {
         this.idProduct = idProduct;
         this.idFeedstock = idFeedstock;
     }
@@ -34,3 +35,4 @@ public class ProductFeedstockId implements Serializable {
         return Objects.hash(idProduct, idFeedstock);
     }
 }
+
