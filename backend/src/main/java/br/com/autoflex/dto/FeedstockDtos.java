@@ -7,9 +7,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.QueryParam;
 
 import java.math.BigDecimal;
+import java.util.List;
 
-public class FeedstockDtos {
+public final class FeedstockDtos {
     private FeedstockDtos() {}
+
+    // -------- REQUESTS --------
 
     public static class PaginateRequest {
         @QueryParam("q")
@@ -38,11 +41,37 @@ public class FeedstockDtos {
         public String unitOfMeasure;
     }
 
+    public static class UpdateRequest {
+        @NotBlank
+        public String feedstockCode;
+
+        @NotBlank
+        public String name;
+
+        @DecimalMin(value = "0.0", inclusive = true)
+        public BigDecimal stock;
+
+        @NotBlank
+        public String unitOfMeasure;
+    }
+
+    // -------- RESPONSES --------
+
+    public static class ProductItem {
+        public Long id;
+        public String productCode;
+        public String name;
+        public BigDecimal unitPrice;
+        public BigDecimal quantity;
+    }
+
     public static class Response {
         public Long id;
         public String feedstockCode;
         public String name;
         public BigDecimal stock;
         public String unitOfMeasure;
+
+        public List<ProductItem> products;
     }
 }

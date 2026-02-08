@@ -11,8 +11,8 @@ import java.util.Set;
 public class Feedstock {
 
     @Id
-    @Column(name = "ID_FEEDSTOCK")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID_FEEDSTOCK")
     public Long id;
 
     @Column(name = "FEEDSTOCK_CODE", nullable = false, unique = true, length = 30)
@@ -29,5 +29,4 @@ public class Feedstock {
 
     @OneToMany(mappedBy = "feedstock")
     public Set<ProductFeedstock> products = new HashSet<>();
-
 }
