@@ -12,8 +12,6 @@ import java.util.List;
 public final class FeedstockDtos {
     private FeedstockDtos() {}
 
-    // -------- REQUESTS --------
-
     public static class PaginateRequest {
         @QueryParam("q")
         public String q;
@@ -54,8 +52,6 @@ public final class FeedstockDtos {
         @NotBlank
         public String unitOfMeasure;
     }
-
-    // -------- RESPONSES --------
 
     public static class ProductItem {
         public Long id;
