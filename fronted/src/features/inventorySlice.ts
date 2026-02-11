@@ -1,8 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import type { Product, Feedstock, PaginatedResponse, CreateProductDTO, CreateFeedstockDTO } from '../types';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-const api = axios.create({ baseURL: 'http://localhost:3000' });
+const api = axios.create({ baseURL: API_URL });
 
 export const fetchProducts = createAsyncThunk(
   'inventory/fetchProducts',
