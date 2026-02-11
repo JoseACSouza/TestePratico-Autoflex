@@ -35,7 +35,6 @@ class FeedstockServiceTest {
         PanacheQuery<Feedstock> query = mock(PanacheQuery.class);
 
         when(repo.search("x")).thenReturn(query);
-        // Mudamos aqui para aceitar qualquer Page no stubbing
         when(query.page(any(Page.class))).thenReturn(query);
 
         PanacheQuery<Feedstock> result = service.list("x", null, null);
@@ -43,7 +42,6 @@ class FeedstockServiceTest {
         assertSame(query, result);
         verify(repo).search("x");
         
-        // Verificação refinada: checa se os valores dentro do Page são 0 e 20
         verify(query).page(argThat(page -> 
             page.index == 0 && page.size == 20
         ));
@@ -61,7 +59,6 @@ class FeedstockServiceTest {
 
         assertNotNull(created);
         assertEquals("F001", created.feedstockCode);
-        // Garantimos que o repositório foi chamado para salvar
         verify(repo).persist(any(Feedstock.class));
     }
 

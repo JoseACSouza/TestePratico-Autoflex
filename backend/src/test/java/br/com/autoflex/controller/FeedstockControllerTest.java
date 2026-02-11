@@ -37,7 +37,6 @@ class FeedstockControllerTest {
 
     @BeforeEach
     void setup() {
-        // Resolve o problema de tipos numéricos (Float vs Double)
         RestAssured.config = RestAssuredConfig.config()
             .jsonConfig(jsonConfig().numberReturnType(JsonPathConfig.NumberReturnType.DOUBLE));
     }
@@ -67,7 +66,6 @@ class FeedstockControllerTest {
             .body("feedstockCode", is("F010"))
             .body("products", hasSize(1))
             .body("products[0].productCode", is("P001"))
-            // Removido o 'f' pois agora usamos Double globalmente
             .body("products[0].quantity", is(0.25));
 
         verify(service).getById(12L);
@@ -104,7 +102,6 @@ class FeedstockControllerTest {
     @Test
     void create_returns201_andBody() {
         Feedstock created = feedstockWithOneProduct(10L);
-        // Uso de ArgumentMatchers explícito para evitar erro de ambiguidade
         when(service.create(ArgumentMatchers.any(FeedstockDtos.CreateRequest.class))).thenReturn(created);
 
         String payload = """

@@ -15,8 +15,10 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,34 +37,50 @@ class ProductServiceTest {
     FeedstockRepository feedstockRepo;
 
     @Test
+    @SuppressWarnings("unchecked")
     void list_appliesDefaultsAndPagesQuery() {
-        @SuppressWarnings("unchecked")
         PanacheQuery<Product> query = mock(PanacheQuery.class);
 
-        when(productRepo.search("abc")).thenReturn(query);
-        when(query.page(any(Page.class))).thenReturn(query);
+        // O padrão para searchType nulo é "product" no Service
+        when(productRepo.searchByProduct("abc")).thenReturn(query);
+        // PanacheQuery.page() retorna a própria query para permitir encadeamento
+        when(query.page(ArgumentMatchers.any(Page.class))).thenReturn(query);
 
-        PanacheQuery<Product> result = service.list("abc", null, null);
+        PanacheQuery<Product> result = service.list("abc", null, null, null);
 
         assertSame(query, result);
-        verify(productRepo).search("abc");
-        
-        // CORREÇÃO: Usando argThat para validar o conteúdo da página (index 0, size 20)
+        verify(productRepo).searchByProduct("abc");
+        // Verifica se os valores padrão (0 e 20) foram aplicados
         verify(query).page(argThat(p -> p.index == 0 && p.size == 20));
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void list_capsSizeTo100() {
-        @SuppressWarnings("unchecked")
         PanacheQuery<Product> query = mock(PanacheQuery.class);
 
-        when(productRepo.search(null)).thenReturn(query);
-        when(query.page(any(Page.class))).thenReturn(query);
+        when(productRepo.searchByProduct(null)).thenReturn(query);
+        when(query.page(ArgumentMatchers.any(Page.class))).thenReturn(query);
 
-        service.list(null, 2, 999);
+        // Pedindo tamanho 999, deve limitar a 100 conforme lógica do Service
+        service.list(null, null, 2, 999);
 
-        // CORREÇÃO: Validando se o limite de 100 foi aplicado no objeto Page
         verify(query).page(argThat(p -> p.index == 2 && p.size == 100));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void list_usesFeedstockSearch_whenSearchTypeIsFeedstock() {
+        PanacheQuery<Product> query = mock(PanacheQuery.class);
+
+        when(productRepo.searchByFeedstockName("aco")).thenReturn(query);
+        when(query.page(ArgumentMatchers.any(Page.class))).thenReturn(query);
+
+        PanacheQuery<Product> result = service.list("aco", "feedstock", 0, 20);
+
+        assertSame(query, result);
+        verify(productRepo).searchByFeedstockName("aco");
+        verify(query).page(argThat(p -> p.index == 0 && p.size == 20));
     }
 
     @Test
@@ -165,24 +183,23 @@ class ProductServiceTest {
 
         Feedstock f1 = new Feedstock();
         f1.id = 10L;
-        f1.feedstockCode = "F10";
         f1.name = "Mat 10";
-        f1.stock = new BigDecimal("100.0");
 
         Feedstock f2 = new Feedstock();
         f2.id = 11L;
-        f2.feedstockCode = "F11";
         f2.name = "Mat 11";
-        f2.stock = new BigDecimal("50.0");
 
         when(feedstockRepo.findById(10L)).thenReturn(f1);
         when(feedstockRepo.findById(11L)).thenReturn(f2);
 
+        // Simula a geração de ID pelo banco de dados no momento do persist
         doAnswer(inv -> {
             Product p = inv.getArgument(0);
             p.id = 123L;
+            // Garante que a lista de feedstocks esteja inicializada para evitar NPE no service
+            if (p.feedstocks == null) p.feedstocks = new HashSet<>(); 
             return null;
-        }).when(productRepo).persist(any(Product.class));
+        }).when(productRepo).persist(ArgumentMatchers.any(Product.class));
 
         Product created = service.create(req);
 
@@ -191,7 +208,7 @@ class ProductServiceTest {
         assertEquals("P001", created.productCode);
         assertEquals(2, created.feedstocks.size());
 
-        verify(productRepo).persist(any(Product.class));
+        verify(productRepo).persist(ArgumentMatchers.any(Product.class));
         verify(productRepo).flush();
         verify(feedstockRepo).findById(10L);
         verify(feedstockRepo).findById(11L);
