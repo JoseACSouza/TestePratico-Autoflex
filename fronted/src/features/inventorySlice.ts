@@ -1,23 +1,22 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-import type { Product, PaginatedResponse, Feedstock } from '../types';
+import type { Product, Feedstock, PaginatedResponse, CreateProductDTO, CreateFeedstockDTO } from '../types';
 
 const api = axios.create({ baseURL: 'http://localhost:3000' });
 
-// Thunks para Produtos
 export const fetchProducts = createAsyncThunk(
   'inventory/fetchProducts',
-  async ({ page = 0, size = 10, q = '' }: { page?: number; size?: number; q?: string }) => {
+  async ({ page, size, q, searchType }: { page: number; size: number; q?: string; searchType?: string }) => {
     const response = await api.get<PaginatedResponse<Product>>('/products', {
-      params: { page, size, q }
+      params: { page, size, q, searchType }
     });
     return response.data;
   }
 );
 
-export const createProduct = createAsyncThunk(
+export const createProduct = createAsyncThunk<Product, CreateProductDTO>(
   'inventory/createProduct',
-  async (newProduct: Partial<Product>) => {
+  async (newProduct) => {
     const response = await api.post<Product>('/products', newProduct);
     return response.data;
   }
@@ -31,13 +30,21 @@ export const deleteProduct = createAsyncThunk(
   }
 );
 
-// Thunk para Matérias-Primas (Exemplo Index)
+// --- Feedstocks ---
 export const fetchFeedstocks = createAsyncThunk(
   'inventory/fetchFeedstocks',
-  async ({ page = 0, size = 10 }: { page?: number; size?: number }) => {
+  async ({ page, size, q }: { page: number; size: number; q?: string }) => {
     const response = await api.get<PaginatedResponse<Feedstock>>('/feedstocks', {
-      params: { page, size }
+      params: { page, size, q }
     });
+    return response.data;
+  }
+);
+
+export const createFeedstock = createAsyncThunk<Feedstock, CreateFeedstockDTO>(
+  'inventory/createFeedstock',
+  async (newFeedstock) => {
+    const response = await api.post<Feedstock>('/feedstocks', newFeedstock);
     return response.data;
   }
 );
@@ -46,12 +53,19 @@ interface InventoryState {
   products: Product[];
   feedstocks: Feedstock[];
   totalProducts: number;
+  totalFeedstocks: number;
   loading: boolean;
 }
 
 const inventorySlice = createSlice({
   name: 'inventory',
-  initialState: { products: [], feedstocks: [], totalProducts: 0, loading: false } as InventoryState,
+  initialState: { 
+    products: [], 
+    feedstocks: [], 
+    totalProducts: 0, 
+    totalFeedstocks: 0, 
+    loading: false 
+  } as InventoryState,
   reducers: {},
   extraReducers: (builder) => {
     builder
@@ -60,15 +74,19 @@ const inventorySlice = createSlice({
         state.totalProducts = action.payload.total;
         state.loading = false;
       })
-      .addCase(deleteProduct.fulfilled, (state, action) => {
-        state.products = state.products.filter(p => p.id !== action.payload);
-      })
       .addCase(fetchFeedstocks.fulfilled, (state, action) => {
         state.feedstocks = action.payload.items;
+        state.totalFeedstocks = action.payload.total;
         state.loading = false;
+      })
+      .addCase(createFeedstock.fulfilled, (state, action) => {
+        state.feedstocks.unshift(action.payload);
       })
       .addMatcher(action => action.type.endsWith('/pending'), (state) => {
         state.loading = true;
+      })
+      .addMatcher(action => action.type.endsWith('/rejected'), (state) => {
+        state.loading = false;
       });
   }
 });

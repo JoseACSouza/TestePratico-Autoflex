@@ -37,3 +37,20 @@ export interface PaginatedResponse<T> {
   page: number;
   size: number;
 }
+
+export interface CreateFeedstockDTO {
+  feedstockCode: string;
+  name: string;
+  stock: number;
+  unitOfMeasure: string;
+}
+
+export interface CreateProductDTO {
+  productCode: string;
+  name: string;
+  unitPrice: number;
+  feedstocks: {
+    feedstockId: number;
+    quantity: number;
+  }[];
+}
