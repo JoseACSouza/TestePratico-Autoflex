@@ -33,7 +33,7 @@ public class FeedstockController {
     FeedstockService service;
 
     @GET
-    @Transactional // mantém sessão aberta para LAZY durante o mapeamento DTO
+    @Transactional
     public Response list(@BeanParam FeedstockDtos.PaginateRequest req) {
 
         PanacheQuery<Feedstock> query = service.list(req.q, req.page, req.size);

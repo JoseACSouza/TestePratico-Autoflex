@@ -10,6 +10,7 @@ import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.panache.common.Page;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.InjectMock;
+
 import io.restassured.RestAssured;
 import io.restassured.config.RestAssuredConfig;
 import io.restassured.path.json.config.JsonPathConfig;
@@ -36,8 +37,6 @@ class ProductControllerTest {
 
     @BeforeEach
     void setup() {
-        // Configura o RestAssured para tratar números decimais do JSON como Double
-        // Isso evita o erro de comparação entre Float e Double/BigDecimal
         RestAssured.config = RestAssuredConfig.config()
             .jsonConfig(jsonConfig().numberReturnType(JsonPathConfig.NumberReturnType.DOUBLE));
     }
@@ -62,18 +61,17 @@ class ProductControllerTest {
           .then()
             .statusCode(200)
             .body("id", is(1))
-            // Agora podemos usar valores decimais normais (Double) sem o 'f'
             .body("feedstocks[0].stock", is(250.5))
             .body("feedstocks[0].quantity", is(0.250));
     }
 
     @Test
-    void list_returnsPagedResponse() {
+    void list_returnsPagedResponse_defaultSearchTypeProduct() {
         @SuppressWarnings("unchecked")
         PanacheQuery<Product> query = mock(PanacheQuery.class);
         Product p1 = productWithOneFeedstock(1L);
 
-        when(service.list(anyString(), anyInt(), anyInt())).thenReturn(query);
+        when(service.list(any(), any(), any(), any())).thenReturn(query);
         when(query.list()).thenReturn(List.of(p1));
         when(query.count()).thenReturn(1L);
         when(query.page()).thenReturn(Page.of(0, 20));
@@ -86,12 +84,37 @@ class ProductControllerTest {
           .then()
             .statusCode(200)
             .body("total", is(1));
+
+        verify(service).list(eq("a"), isNull(), eq(0), eq(20));
+    }
+
+    @Test
+    void list_returnsPagedResponse_searchTypeFeedstock() {
+        @SuppressWarnings("unchecked")
+        PanacheQuery<Product> query = mock(PanacheQuery.class);
+        Product p1 = productWithOneFeedstock(1L);
+
+        when(service.list(any(), any(), any(), any())).thenReturn(query);
+        when(query.list()).thenReturn(List.of(p1));
+        when(query.count()).thenReturn(1L);
+        when(query.page()).thenReturn(Page.of(0, 20));
+
+        given()
+          .queryParam("q", "aco")
+          .queryParam("searchType", "feedstock")
+          .queryParam("page", 0)
+          .queryParam("size", 20)
+          .when().get("/products")
+          .then()
+            .statusCode(200)
+            .body("total", is(1));
+
+        verify(service).list(eq("aco"), eq("feedstock"), eq(0), eq(20));
     }
 
     @Test
     void create_returns201_andBody() {
         Product created = productWithOneFeedstock(10L);
-        // Uso explícito do ArgumentMatchers do Mockito para evitar conflito com Hamcrest
         when(service.create(ArgumentMatchers.any(ProductDtos.CreateRequest.class))).thenReturn(created);
 
         String payload = """
@@ -115,13 +138,16 @@ class ProductControllerTest {
     void update_returns404_whenNotFound() {
         when(service.update(anyLong(), ArgumentMatchers.any(ProductDtos.UpdateRequest.class))).thenReturn(null);
 
-        // Payload válido para passar pelas validações @NotBlank/@NotEmpty do Controller
+        // CORREÇÃO: O seu DTO exige @NotEmpty para feedstocks. 
+        // Adicionamos um item válido na lista para passar pela validação @Valid.
         String payload = """
         {
           "productCode": "UPDATED",
           "name": "Produto Atualizado",
           "unitPrice": 15.50,
-          "feedstocks": [{ "feedstockId": 1, "quantity": 1.0 }]
+          "feedstocks": [
+            { "feedstockId": 1, "quantity": 1.0 }
+          ]
         }
         """;
 

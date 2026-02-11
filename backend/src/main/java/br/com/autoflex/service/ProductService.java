@@ -25,11 +25,20 @@ public class ProductService {
     @Inject
     FeedstockRepository feedstockRepo;
 
-    public PanacheQuery<Product> list(String q, Integer page, Integer size) {
+    public PanacheQuery<Product> list(String q, String searchType, Integer page, Integer size) {
         int p = (page == null || page < 0) ? 0 : page;
         int s = (size == null || size <= 0) ? 20 : Math.min(size, 100);
 
-        PanacheQuery<Product> query = repo.search(q);
+        String type = (searchType == null || searchType.isBlank())
+                ? "product"
+                : searchType.trim().toLowerCase();
+
+        PanacheQuery<Product> query = switch (type) {
+            case "feedstock" -> repo.searchByFeedstockName(q);
+            case "product" -> repo.searchByProduct(q);
+            default -> repo.searchByProduct(q); 
+        };
+
         query.page(Page.of(p, s));
         return query;
     }

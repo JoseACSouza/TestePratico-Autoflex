@@ -56,8 +56,7 @@ public class ProductController {
     @Transactional
     public Response list(@BeanParam ProductDtos.PaginateRequest req) {
 
-        PanacheQuery<Product> query = service.list(req.q, req.page, req.size);
-
+        PanacheQuery<Product> query = service.list(req.q, req.searchType, req.page, req.size);
         List<ProductDtos.Response> items =
                 query.list().stream()
                         .map(this::toDto)

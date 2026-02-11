@@ -18,6 +18,9 @@ public class ProductDtos {
         @QueryParam("q")
         public String q;
 
+        @QueryParam("searchType")
+        public String searchType;
+
         @QueryParam("page")
         @Min(0)
         public Integer page;
@@ -45,7 +48,7 @@ public class ProductDtos {
         @NotNull
         public Long feedstockId;
 
-        @DecimalMin(value = "0.0", inclusive = false) // > 0
+        @DecimalMin(value = "0.0", inclusive = false)
         public BigDecimal quantity;
     }
 
