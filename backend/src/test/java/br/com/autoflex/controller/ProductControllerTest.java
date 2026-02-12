@@ -138,8 +138,6 @@ class ProductControllerTest {
     void update_returns404_whenNotFound() {
         when(service.update(anyLong(), ArgumentMatchers.any(ProductDtos.UpdateRequest.class))).thenReturn(null);
 
-        // CORREÇÃO: O seu DTO exige @NotEmpty para feedstocks. 
-        // Adicionamos um item válido na lista para passar pela validação @Valid.
         String payload = """
         {
           "productCode": "UPDATED",
