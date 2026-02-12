@@ -13,7 +13,6 @@ export default function CreateFeedstockModal({ isOpen, onClose }: Props) {
   const dispatch = useAppDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Estados do Formulário
   const [name, setName] = useState('');
   const [feedstockCode, setFeedstockCode] = useState('');
   const [stock, setStock] = useState('');

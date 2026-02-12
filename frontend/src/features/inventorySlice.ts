@@ -3,7 +3,12 @@ import axios from 'axios';
 import type { Product, Feedstock, PaginatedResponse, CreateProductDTO, CreateFeedstockDTO } from '../types';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-const api = axios.create({ baseURL: API_URL });
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 
 export const fetchProducts = createAsyncThunk(
   'inventory/fetchProducts',
@@ -31,7 +36,6 @@ export const deleteProduct = createAsyncThunk(
   }
 );
 
-// --- Feedstocks ---
 export const fetchFeedstocks = createAsyncThunk(
   'inventory/fetchFeedstocks',
   async ({ page, size, q }: { page: number; size: number; q?: string }) => {
@@ -47,6 +51,14 @@ export const createFeedstock = createAsyncThunk<Feedstock, CreateFeedstockDTO>(
   async (newFeedstock) => {
     const response = await api.post<Feedstock>('/feedstocks', newFeedstock);
     return response.data;
+  }
+);
+
+export const deleteFeedstock = createAsyncThunk(
+  'inventory/deleteFeedstock',
+  async (id: number) => {
+    await api.delete(`/feedstocks/${id}`);
+    return id;
   }
 );
 
