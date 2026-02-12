@@ -41,16 +41,13 @@ class ProductServiceTest {
     void list_appliesDefaultsAndPagesQuery() {
         PanacheQuery<Product> query = mock(PanacheQuery.class);
 
-        // O padrão para searchType nulo é "product" no Service
         when(productRepo.searchByProduct("abc")).thenReturn(query);
-        // PanacheQuery.page() retorna a própria query para permitir encadeamento
         when(query.page(ArgumentMatchers.any(Page.class))).thenReturn(query);
 
         PanacheQuery<Product> result = service.list("abc", null, null, null);
 
         assertSame(query, result);
         verify(productRepo).searchByProduct("abc");
-        // Verifica se os valores padrão (0 e 20) foram aplicados
         verify(query).page(argThat(p -> p.index == 0 && p.size == 20));
     }
 
@@ -62,7 +59,6 @@ class ProductServiceTest {
         when(productRepo.searchByProduct(null)).thenReturn(query);
         when(query.page(ArgumentMatchers.any(Page.class))).thenReturn(query);
 
-        // Pedindo tamanho 999, deve limitar a 100 conforme lógica do Service
         service.list(null, null, 2, 999);
 
         verify(query).page(argThat(p -> p.index == 2 && p.size == 100));
@@ -192,11 +188,9 @@ class ProductServiceTest {
         when(feedstockRepo.findById(10L)).thenReturn(f1);
         when(feedstockRepo.findById(11L)).thenReturn(f2);
 
-        // Simula a geração de ID pelo banco de dados no momento do persist
         doAnswer(inv -> {
             Product p = inv.getArgument(0);
             p.id = 123L;
-            // Garante que a lista de feedstocks esteja inicializada para evitar NPE no service
             if (p.feedstocks == null) p.feedstocks = new HashSet<>(); 
             return null;
         }).when(productRepo).persist(ArgumentMatchers.any(Product.class));

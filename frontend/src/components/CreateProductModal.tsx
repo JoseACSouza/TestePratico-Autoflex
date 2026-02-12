@@ -12,7 +12,6 @@ export default function CreateProductModal({ isOpen, onClose }: CreateProductMod
   const dispatch = useAppDispatch();
   const { feedstocks } = useAppSelector((state) => state.inventory);
 
-  // Estados do formulário
   const [name, setName] = useState('');
   const [productCode, setProductCode] = useState('');
   const [unitPrice, setUnitPrice] = useState<number>(0);
@@ -56,9 +55,9 @@ export default function CreateProductModal({ isOpen, onClose }: CreateProductMod
 
     try {
       await dispatch(createProduct(payload)).unwrap();
-      dispatch(fetchProducts({ page: 0, size: 5 })); // Recarrega a lista
+      dispatch(fetchProducts({ page: 0, size: 5 }));
       onClose();
-      // Reset campos
+      
       setName(''); setProductCode(''); setUnitPrice(0); setSelectedItems([]);
     } catch (err) {
       alert("Erro ao criar produto");

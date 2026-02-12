@@ -8,7 +8,6 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-white">
-        {/* O Navbar decide internamente se aparece ou não */}
         <Navbar />
         
         <main>
